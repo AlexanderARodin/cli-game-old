@@ -6,8 +6,8 @@ edit:
 
 test:
 	@cargo test
-run: release
-	@cargo run -r -- -V
+run:
+	@cargo run -r -- -h
 
 # # # # # # # #
 pull:
