@@ -7,23 +7,27 @@ use mlua::Function;
 
 // // // // // // // //
 pub fn main_lua(main_lua_code: &str) -> Result<()> {
-    let lua = internal_utils::init_lua(main_lua_code, main_printer )?;
-    let globals = lua.globals();
+    let lua = internal_utils::init_lua(main_lua_code,
+        |txt_list: Vec<String>| {
+            use colored::Colorize;
+            //println!( "{} {}", "LUA:".bold().bright_white(), format!("{:?}",txt_list).bright_magenta() );
+            let mut the_first = true;
+            for item in txt_list.iter() {
+                if the_first {
+                    the_first = false;
+                    print!( "{} {}", "LUA:".bold().bright_white(), item.bright_magenta() );
+                }else{
+                    print!( "\t{}", item.bright_magenta() );
+                }
+            }
+            println!();
+        }
+    )?;
 
-    //
-    //let setup_params = lua.create_table()?;
-    //let call_lua_setup: Function = globals.get("setup")?;
-    //let _lua_setup_result = call_lua_setup.call::<_, ()>(setup_params)?;
-
-
-    enter_loop(&lua, &globals)?;
+    let call_lua_update: Function = lua.globals().get("update")?;
+    crate::lua_loop::lua_enter_loop(&lua, &call_lua_update)?;
 
     Ok(())
-}
-
-fn main_printer(txt_list: Vec<String>) {
-    use colored::Colorize;
-    println!( "{} {}", "LUA:".bold().bright_white(), format!("{:?}",txt_list).bright_magenta() );
 }
 
 
@@ -65,19 +69,6 @@ mod internal_utils {
 
 
 
-// // // // // // // //
-fn enter_loop(_lua: &Lua, globals: &mlua::Table) -> Result<()> {
-    let call_lua_update: Function = globals.get("update")?;
-
-    for time in 1..5 {
-        let txt = call_lua_update.call::<_, String>(time)?;
-        println!("time = {} : {}", time, txt);
-    }
-
-    Ok(())
-}
-
-
 //  //  //  //  //  //  //  //  //  //
 //          TEST                    //
 //  //  //  //  //  //  //  //  //  //
@@ -117,6 +108,23 @@ mod tests {
         }
         assert!( ss == *LOGGER_BUF.lock().unwrap() ); 
         Ok(())
+    }
+
+    #[test]
+    fn ok_loading() -> Result<()> {
+        let code = "function update() return '+/-1' end";
+        let _ = main_lua(code)?;
+        Ok(())
+    }
+
+    #[test]
+    fn fail_loading() -> Result<()> {
+        let code = "-- there is no UPDATE function";
+        let ilua = main_lua(code);
+        match ilua {
+            Err(_) => return Ok(()),
+            Ok(_) => return Err( anyhow!("Must fail on searchin UPDATE function") ),
+        }
     }
 }
 

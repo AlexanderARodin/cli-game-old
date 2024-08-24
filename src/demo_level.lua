@@ -1,15 +1,8 @@
-print()
-print( '\nentered Lua..' )
-print( 33, 'AAAAAaaaaAAA' )
+print( 'entered Lua..' )
 
 
 function update(time)
+	print("time:", time)
 	return '- + -'
-end
-
-
-function setup(params)
-	print( 'lua.setup..' )
-	-- print( 'X = ', params["X"], 'Y = ', params["Y"] )
 end
 
