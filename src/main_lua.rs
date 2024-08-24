@@ -23,7 +23,7 @@ pub fn main_lua(main_lua_code: &str) -> Result<()> {
 
 fn main_printer(txt_list: Vec<String>) {
     use colored::Colorize;
-    println!( "{} {}", "LUA:".blue().bold(), format!("{:?}",txt_list).green() );
+    println!( "{} {}", "LUA:".bold().bright_white(), format!("{:?}",txt_list).bright_magenta() );
 }
 
 
