@@ -7,7 +7,7 @@ edit:
 test:
 	@cargo test
 run:
-	@cargo run -r -- -h
+	@cargo run -r -- -l src/demo_level.lua
 
 # # # # # # # #
 pull:

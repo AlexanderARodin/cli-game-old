@@ -1,3 +1,7 @@
+use std::io;
+//use std::io::Write;
+use crossterm::{execute, terminal::{EnterAlternateScreen, LeaveAlternateScreen}};
+
 use anyhow::Result;
 
 use mlua::prelude::*;
@@ -10,12 +14,11 @@ pub fn main_lua(main_lua_code: &str) -> Result<()> {
     let lua = internal_utils::init_lua(main_lua_code,
         |txt_list: Vec<String>| {
             use colored::Colorize;
-            //println!( "{} {}", "LUA:".bold().bright_white(), format!("{:?}",txt_list).bright_magenta() );
             let mut the_first = true;
             for item in txt_list.iter() {
                 if the_first {
                     the_first = false;
-                    print!( "{} {}", "LUA:".bold().bright_white(), item.bright_magenta() );
+                    print!( "{} {}", "LUA:".bold().green(), item.bright_magenta() );
                 }else{
                     print!( "\t{}", item.bright_magenta() );
                 }
@@ -25,7 +28,9 @@ pub fn main_lua(main_lua_code: &str) -> Result<()> {
     )?;
 
     let call_lua_update: Function = lua.globals().get("update")?;
+    execute!(io::stdout(), EnterAlternateScreen)?;
     crate::lua_loop::lua_enter_loop(&lua, &call_lua_update)?;
+    execute!(io::stdout(), LeaveAlternateScreen)?;
 
     Ok(())
 }
@@ -112,7 +117,7 @@ mod tests {
 
     #[test]
     fn ok_loading() -> Result<()> {
-        let code = "function update() return '+/-1' end";
+        let code = "function update() return {target={x=2,y=3}} end";
         let _ = main_lua(code)?;
         Ok(())
     }

@@ -1,6 +1,3 @@
-use std::io::{self,Write};
-use crossterm::{execute, terminal::{EnterAlternateScreen, LeaveAlternateScreen}};
-
 use clap::Parser;
 
 mod main_lua;
@@ -8,7 +5,7 @@ mod lua_loop;
 
 
 // // // // // // // //
-fn main() -> io::Result<()> {
+fn main() -> anyhow::Result<()> {
     println!("starting..");
     {
         let args = CliArgs::parse();
@@ -16,15 +13,9 @@ fn main() -> io::Result<()> {
         let lua_game_code = std::fs::read_to_string(args.level)
             .expect("impossible to open lua_level file");
 
-        execute!(io::stdout(), EnterAlternateScreen)?;
-        match main_lua::main_lua(&lua_game_code) {
-            Ok(()) => println!("...Ok!"),
-            Err(e) => {
-                eprintln!("Lua: {}", e);
-            },
-        }
-        execute!(io::stdout(), LeaveAlternateScreen)?;
+        let _ = main_lua::main_lua(&lua_game_code)?;
     }
+    println!("..Ok!");
     Ok(())
 }
 
@@ -36,6 +27,3 @@ struct CliArgs {
     level: String,
 }
 
-
-
-// // // // // // // //
