@@ -28,11 +28,15 @@ pub fn main_lua(main_lua_code: &str) -> Result<()> {
     )?;
 
     let call_lua_update: Function = lua.globals().get("update")?;
-    execute!(io::stdout(), EnterAlternateScreen)?;
-    crate::lua_loop::lua_enter_loop(&lua, &call_lua_update)?;
-    execute!(io::stdout(), LeaveAlternateScreen)?;
+    if !cfg!(test) {
+        execute!(io::stdout(), EnterAlternateScreen)?;
+    }
+    let res = crate::lua_loop::enter_loop(&lua, &call_lua_update);
+    if !cfg!(test) {
+        execute!(io::stdout(), LeaveAlternateScreen)?;
+    }
 
-    Ok(())
+    res
 }
 
 
