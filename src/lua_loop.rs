@@ -29,16 +29,16 @@ pub fn enter_loop(_lua: &mlua::Lua, update: &mlua::Function) -> Result<()> {
             println!( "Lua testing\nx={}, y={}", target_x, target_y );
             return Ok(());
         }
-        sleep( Duration::from_millis(100) );
+        sleep( Duration::from_millis(50) );
     }
-    //let _ = stdin().read(&mut [0u8])?;
 
     loop {
         //call_lua_update()?;
         screen::invoke_redraw( 1, 1 )?;
         user_input::get_it()?;
         //apply_input()?;
-        break;
+        //break;
+        let _ = stdin().read(&mut [0_u8])?;
     }
 
         let _ = stdin().read(&mut [0_u8])?;
@@ -112,6 +112,7 @@ mod user_input {
 
         let ex = expand_string( &src_input_string )?;
         println!("\nexpanded: \n<{}>",ex.blue() );
+        sleep( Duration::from_millis(1000) );
 
         Ok(())
     }
@@ -134,9 +135,34 @@ mod user_input {
 
     fn expand_string(s: &str) -> Result<String>{
         let mut res = String::new();
+        let mut mult: Option<u32> = None;
 
         for ch in s.chars() {
-            res.push( ch );
+            match ch {
+                '\n' => break,
+                '\t' => res.push_str( "<tab>" ),
+                '0'..'9' => {
+                    let num:u32 = (ch as u32) - 48;
+                    if let Some(m) = mult {
+                        mult = Some( num + m*10 );
+                    }else{
+                        mult = Some(num);
+                    }
+                    println!("<#{:?}>", mult);
+                },
+                'h' | 'j' | 'k' | 'l' => {
+                    let final_num = match mult {
+                        None => 1,
+                        Some(n) => n,
+                    };
+                    for _ in 0..final_num {
+                        res.push( ch );
+                    }
+                    mult = None;
+                },
+                _ => return Err( anyhow!("unsupported character") ),
+            };
+            //res.push( ch );
         }
 
         Ok(res)
