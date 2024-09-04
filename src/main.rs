@@ -1,8 +1,7 @@
 use clap::Parser;
 
-mod main_lua;
-mod lua_loop;
 
+mod main_lua;
 
 // // // // // // // //
 fn main() -> anyhow::Result<()> {
