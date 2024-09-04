@@ -2,6 +2,7 @@ use std::io::{stdout, Stdout,Write, stdin,Read};
 use std::{thread::sleep, time::Duration};
 
 use anyhow::Result;
+use anyhow::anyhow;
 
 
 
@@ -90,20 +91,56 @@ mod screen {
 }
 
 
+//  //  //  //  //  //  //  //
 mod user_input {
     use super::*;
+    use colored::Colorize;
 
     pub(super) fn get_it() -> Result<()>{
-        let mut buf = [0_u8;1024];
-        let n = stdin().read(&mut buf)?;
+        let src_input_string = match input_string() {
+            Err(e) => {
+                eprintln!("{}{}", "\n\nE: ".bold().red(), e.to_string().red() );
+                sleep( Duration::from_millis(300) );
+                return Ok(());
+            },
+            Ok(s) => {
+                s
+            },
+        };
 
-        let txt = std::str::from_utf8(&buf)?;
-        println!("yyyyyyyy\n{}",txt);
+        println!("\ninput content: \n<{}>",src_input_string.green() );
+
+        let ex = expand_string( &src_input_string )?;
+        println!("\nexpanded: \n<{}>",ex.blue() );
 
         Ok(())
     }
 
-    fn get_command() -> Result<String>{
-        Ok("".to_owned())
+    fn input_string() -> Result<String>{
+        let mut res_string = String::new();
+        let mut buf = [43_u8;128];
+        loop{
+            let n = stdin().read(&mut buf)?;
+            if n == 0 {
+                break;
+            }
+            res_string += std::str::from_utf8( &buf[..(n)] )?;
+            if n < 10 {
+                break;
+            }
+        }
+        Ok( res_string )
+    }
+
+    fn expand_string(s: &str) -> Result<String>{
+        let mut res = String::new();
+
+        for ch in s.chars() {
+            res.push( ch );
+        }
+
+        Ok(res)
     }
 }
+
+
