@@ -1,103 +1,86 @@
-use std::io::{stdout, Stdout,Write, stdin,Read};
+use std::io::{stdin,Read};
 use std::{thread::sleep, time::Duration};
 
 use colored::Colorize;
 use anyhow::Result;
 
 
+mod screen;
 mod command_string;
 mod user_input;
 
 //  //  //  //  //  //  //  //
-pub fn enter_loop(_lua: &mlua::Lua, update: &mlua::Function) -> Result<()> {
+pub fn enter_loop(_lua: &mlua::Lua, updater: &mlua::Function) -> Result<()> {
+    let mut game_state = GameState::new()?;
 
-    let _lua_update_result = update.call::<_, ()>( mlua::Value::Integer(-1) )?;
+        /*
+        loop {
+            ......
+            update_state_by_input
+            show_state
+            wait_for_continue
+        }
+        show_exit_result
+        */
 
-    let mut update_result: mlua::Table;
-    let mut target_pos: mlua::Table;
-    let mut target_x: i64;
-    let mut target_y: i64;
-
-    for time in 0..5 {
-        update_result = update.call::<_, mlua::Table>( mlua::Value::Integer(time) )?;
-        target_pos = update_result.get("target")?;
-        target_x   = target_pos.get("x")?;
-        target_y   = target_pos.get("y")?;
-
-            println!( "x={}, y={}", target_x, target_y );
-
-        //  //  //  //
+    loop{
+        game_state.update_by_lua( updater )?;
         if cfg!(test) {
-            println!( "Lua testing\nx={}, y={}", target_x, target_y );
+            println!("test run..\n..ended!");
             return Ok(());
         }
-        sleep( Duration::from_millis(50) );
-    }
+        screen::show_state( &game_state )?;
+        let src_line = user_input::read_line()?;
+        let res_line = command_string::expand(&src_line)?;
+        if res_line == "q" {
+            break;
+        }
+            println!("\nexpanded: \n<{}>",res_line.blue() );
+            //sleep( Duration::from_millis(1000) );
 
-    loop {
-        //call_lua_update()?;
-        screen::invoke_redraw( 1, 1 )?;
-
-        // input and converting
-        let raw_line = user_input::read_line()?;
-            println!("\ninput content: \n<{}>",raw_line.green() );
-
-        let ex_line = command_string::expand( &raw_line)?;
-            println!("\nexpanded: \n<{}>",ex_line.blue() );
-            sleep( Duration::from_millis(1000) );
-
-        //apply_input()?;
-        //break;
+        // wait_for_continue
         let _ = stdin().read(&mut [0_u8])?;
     }
 
+    println!("{}", "\nthe END\n".yellow() );
+    sleep( Duration::from_millis(1000) );
     //let _ = stdin().read(&mut [0_u8])?;
-    //Ok(())
+    Ok(())
 }
 
 
 //  //  //  //  //  //  //  //
-mod screen {
-    use super::*;
-    use crossterm::terminal::*;
-    use crossterm::{queue, cursor};
-
-    pub(super) fn invoke_redraw(target_x: u16, target_y: u16) -> Result<()>{
-        let mut stdout = stdout();
-        stdout.flush()?;
-        {
-            redraw_background(&mut stdout)?;
-            redraw_target(&mut stdout, target_x,target_y)?;
-
-            print_prompt(&mut stdout)?;
-        }
-        stdout.flush()?;
-        Ok(())
-    }
-
-    fn redraw_background(stdout: &mut Stdout) -> Result<()>{
-        queue!(stdout, Clear(ClearType::All) )?;
-        queue!(stdout, cursor::MoveTo(2,0) )?;
-
-        println!(" 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F");
-        print!("00\n10\n20\n30\n40\n50\n60\n70\n80\n90\nA0\nB0\nC0\nD0\nE0\nF0");
-
-        Ok(())
-    }
-
-    fn redraw_target(stdout: &mut Stdout, target_x: u16, target_y: u16) -> Result<()>{
-        queue!(stdout, cursor::MoveTo(target_x*3 + 4, target_y+1) )?;
-        print!("X");
-        Ok(())
-    }
-
-    fn print_prompt(stdout: &mut Stdout) -> Result<()>{
-        queue!(stdout, cursor::MoveTo(0,18) )?;
-        print!(":");
-
-        Ok(())
-    }
-
+struct GameState {
+    time_step: i64,
+    target: (u16,u16),
+    player: (u16,u16),
 }
 
+impl GameState {
+    fn new() -> Result<Self> {
+        let new_one = GameState{
+            time_step: -1,
+            target: (15,0),
+            player: (0,15),
+        };
+        Ok( new_one )
+    }
+
+    fn update_by_lua(&mut self, updater: &mlua::Function) -> Result<()> {
+        let update_result: mlua::Table = updater.call::<_, mlua::Table>( mlua::Value::Integer( self.time_step ) )?;
+        {
+            let target_pos: mlua::Table = update_result.get("target")?;
+            let target_x: i64   = target_pos.get("x")?;
+            let target_y: i64   = target_pos.get("y")?;
+            self.target = (target_x as u16, target_y as u16);
+        }
+
+        if self.time_step == -1 {
+            self.time_step = 1;
+        }else{
+            self.time_step += 1;
+        }
+        Ok(())
+    }
+}
 

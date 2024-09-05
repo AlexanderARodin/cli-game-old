@@ -85,7 +85,6 @@ mod internal_utils {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anyhow::anyhow;
 
     #[test]
     fn basic_creating() -> Result<()> {
@@ -98,10 +97,8 @@ mod tests {
     fn basic_fail_loading() -> Result<()> {
         let code = "b r o k e n  c o d e";
         let ilua = internal_utils::init_lua(code, |_|{});
-        match ilua {
-            Err(_) => return Ok(()),
-            Ok(_) => return Err( anyhow!("Must be a Lua syntax Error") ),
-        }
+        assert!( ilua.is_err(), "Must be a Lua syntax Error" );
+        Ok(())
     }
 
     static LOGGER_BUF: std::sync::Mutex<String> = std::sync::Mutex::new(String::new());
@@ -131,10 +128,8 @@ mod tests {
     fn fail_loading() -> Result<()> {
         let code = "-- there is no UPDATE function";
         let ilua = main_lua(code);
-        match ilua {
-            Err(_) => return Ok(()),
-            Ok(_) => return Err( anyhow!("Must fail on searchin UPDATE function") ),
-        }
+        assert!( ilua.is_err(), "Must be a runtime error of abscent UPDATE function" );
+        Ok(())
     }
 }
 
