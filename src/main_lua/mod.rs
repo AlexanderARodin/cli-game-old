@@ -1,7 +1,4 @@
-use std::io;
 use anyhow::Result;
-
-use crossterm::{execute, terminal::{EnterAlternateScreen, LeaveAlternateScreen}};
 
 use mlua::prelude::*;
 use mlua::{Variadic,Value};
@@ -29,13 +26,7 @@ pub fn main_lua(main_lua_code: &str) -> Result<()> {
     )?;
 
     let call_lua_update: Function = lua.globals().get("update")?;
-    if !cfg!(test) {
-        execute!(io::stdout(), EnterAlternateScreen)?;
-    }
     let res = lua_loop::enter_loop(&lua, &call_lua_update);
-    if !cfg!(test) {
-        execute!(io::stdout(), LeaveAlternateScreen)?;
-    }
 
     res
 }

@@ -1,7 +1,5 @@
-use std::io::{stdin,Read};
 use std::{thread::sleep, time::Duration};
 
-use colored::Colorize;
 use anyhow::Result;
 
 
@@ -12,6 +10,7 @@ mod user_input;
 //  //  //  //  //  //  //  //
 pub fn enter_loop(_lua: &mlua::Lua, updater: &mlua::Function) -> Result<()> {
     let mut game_state = GameState::new()?;
+    let mut alt_screen = screen::AltScreen::new()?;
 
         /*
         loop {
@@ -23,28 +22,55 @@ pub fn enter_loop(_lua: &mlua::Lua, updater: &mlua::Function) -> Result<()> {
         show_exit_result
         */
 
-    loop{
+    'game_loop: loop{
         game_state.update_by_lua( updater )?;
         if cfg!(test) {
             println!("test run..\n..ended!");
             return Ok(());
         }
-        screen::show_state( &game_state )?;
+
+        alt_screen.show_state(&game_state, true)?;
+
         let src_line = user_input::read_line()?;
         let res_line = command_string::expand(&src_line)?;
         if res_line == "q" {
-            break;
+            game_state.status = GameStatus::Debug("..the END!".to_string());
+            break 'game_loop;
         }
-            println!("\nexpanded: \n<{}>",res_line.blue() );
-            //sleep( Duration::from_millis(1000) );
+            /*{
+                use colored::Colorize;
+                println!("\nexpanded: \n<{}>",res_line.blue() );
+                sleep( Duration::from_millis(1000) );
+            }*/
+        alt_screen.clean()?;
+        for cmd in res_line.chars() {
+            match cmd {
+                'j' => game_state.move_down(),
+                'k' => game_state.move_up(),
+                'h' => game_state.move_left(),
+                'l' => game_state.move_right(),
+                _ => todo!("un-un-unSupported"),
+            }
+            match game_state.status {
+                GameStatus::GameOver(_) => {
+                    break 'game_loop;
+                },
+                _ => {
+                },
+            };
+            alt_screen.show_state(&game_state, false)?;
+            sleep( Duration::from_millis(100) );
+        }
+    } // 'game_loop
 
-        // wait_for_continue
+    // pre Exit
+    alt_screen.clean()?;
+    alt_screen.show_state(&game_state, false)?;
+    sleep( Duration::from_millis(300) );
+    {
+        use std::io::{stdin,Read};
         let _ = stdin().read(&mut [0_u8])?;
     }
-
-    println!("{}", "\nthe END\n".yellow() );
-    sleep( Duration::from_millis(1000) );
-    //let _ = stdin().read(&mut [0_u8])?;
     Ok(())
 }
 
@@ -54,6 +80,12 @@ struct GameState {
     time_step: i64,
     target: (u16,u16),
     player: (u16,u16),
+    status: GameStatus,
+}
+enum GameStatus {
+    Ok,
+    GameOver(String),
+    Debug(String),
 }
 
 impl GameState {
@@ -62,6 +94,7 @@ impl GameState {
             time_step: -1,
             target: (15,0),
             player: (0,15),
+            status: GameStatus::Ok,
         };
         Ok( new_one )
     }
@@ -82,5 +115,47 @@ impl GameState {
         }
         Ok(())
     }
+
+    fn move_up(&mut self) {
+        if let GameStatus::GameOver(_) = self.status {
+            return;
+        }
+        if self.player.1 <=0 {
+            self.status = GameStatus::GameOver("touched the top edge!".to_string());
+            return;
+        }
+        self.player.1 -= 1;
+    }
+    fn move_down(&mut self) {
+        if let GameStatus::GameOver(_) = self.status {
+            return;
+        }
+        if self.player.1 >= 15 {
+            self.status = GameStatus::GameOver("touched the bottom edge!".to_string());
+            return;
+        }
+        self.player.1 += 1;
+    }
+    fn move_left(&mut self) {
+        if let GameStatus::GameOver(_) = self.status {
+            return;
+        }
+        if self.player.0 <=0 {
+            self.status = GameStatus::GameOver("touched the left edge!".to_string());
+            return;
+        }
+        self.player.0 -= 1;
+    }
+    fn move_right(&mut self) {
+        if let GameStatus::GameOver(_) = self.status {
+            return;
+        }
+        if self.player.0 >= 15 {
+            self.status = GameStatus::GameOver("touched the right edge!".to_string());
+            return;
+        }
+        self.player.0 += 1;
+    }
+
 }
 
