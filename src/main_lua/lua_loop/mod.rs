@@ -12,16 +12,6 @@ pub fn enter_loop(_lua: &mlua::Lua, updater: &mlua::Function) -> Result<()> {
     let mut game_state = GameState::new()?;
     let mut alt_screen = screen::AltScreen::new()?;
 
-        /*
-        loop {
-            ......
-            update_state_by_input
-            show_state
-            wait_for_continue
-        }
-        show_exit_result
-        */
-
     'game_loop: loop{
         game_state.update_by_lua( updater )?;
         if cfg!(test) {
@@ -33,15 +23,13 @@ pub fn enter_loop(_lua: &mlua::Lua, updater: &mlua::Function) -> Result<()> {
 
         let src_line = user_input::read_line()?;
         let res_line = command_string::expand(&src_line)?;
+        // check for exit command
         if res_line == "q" {
             game_state.status = GameStatus::Debug("..the END!".to_string());
             break 'game_loop;
         }
-            /*{
-                use colored::Colorize;
-                println!("\nexpanded: \n<{}>",res_line.blue() );
-                sleep( Duration::from_millis(1000) );
-            }*/
+
+        // apply user input
         alt_screen.clean()?;
         for cmd in res_line.chars() {
             match cmd {
@@ -51,13 +39,9 @@ pub fn enter_loop(_lua: &mlua::Lua, updater: &mlua::Function) -> Result<()> {
                 'l' => game_state.move_right(),
                 _ => todo!("un-un-unSupported"),
             }
-            match game_state.status {
-                GameStatus::GameOver(_) => {
-                    break 'game_loop;
-                },
-                _ => {
-                },
-            };
+            if let GameStatus::GameOver(_) = game_state.status {
+                break 'game_loop;
+            }
             alt_screen.show_state(&game_state, false)?;
             sleep( Duration::from_millis(100) );
         }
@@ -65,12 +49,9 @@ pub fn enter_loop(_lua: &mlua::Lua, updater: &mlua::Function) -> Result<()> {
 
     // pre Exit
     alt_screen.clean()?;
-    alt_screen.show_state(&game_state, false)?;
+    alt_screen.show_state(&game_state, true )?;
     sleep( Duration::from_millis(300) );
-    {
-        use std::io::{stdin,Read};
-        let _ = stdin().read(&mut [0_u8])?;
-    }
+    let _ = std::io::Read::read( &mut std::io::stdin(), &mut [0_u8] )?;
     Ok(())
 }
 
