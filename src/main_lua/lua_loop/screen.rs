@@ -7,9 +7,6 @@ use crossterm::{queue, execute, cursor};
 use crossterm::terminal::*;
 use crossterm::style::Print;
 
-use super::GameState;
-use super::GameStatus;
-
 
 //  //  //  //  //  //  //  //
 pub struct AltScreen {
@@ -34,6 +31,7 @@ impl AltScreen {
         )
     }
 }
+
 impl Drop for AltScreen {
     fn drop(&mut self) {
         if !cfg!(test) {
@@ -46,6 +44,13 @@ impl Drop for AltScreen {
 }
 
 //  //  //  //  //  //  //  //
+fn redraw_items(stdout: &mut Stdout, items: &[(u16,u16,String)] ) -> Result<()>{
+    for (x,y,s) in items.into_iter() {
+        print_on_pos(stdout, *x,*y,s)?;
+    }
+    Ok(())
+}
+
 impl AltScreen {
     pub fn clean(&mut self) -> Result<()> {
         queue!(
@@ -55,24 +60,15 @@ impl AltScreen {
         )?;
         Ok(())
     }
-    pub fn show_state(&mut self, state: &GameState, is_prompt: bool) -> Result<()> {
+
+    pub fn show_state(&mut self, items: &[(u16,u16,String)], is_prompt: bool) -> Result<()> {
         self.stdout.flush()?;
         self.begin_synchro()?;
         {
             redraw_background(&mut self.stdout)?;
-            for xx in 0..16 {
-                for yy in 0..16 {
-                    print_on_pos(&mut self.stdout, xx, yy, &get_item_text::empty() )?;
-                }
-            }
-            // print Target
-            let (target_x,target_y) = state.target;
-            print_on_pos(&mut self.stdout, target_x,target_y, &get_item_text::target() )?;
-            // print Player
-            let (player_x,player_y) = state.player;
-            print_on_pos(&mut self.stdout, player_x,player_y, &get_item_text::player() )?;
 
-            show_status(&mut self.stdout, &state.status )?;
+            redraw_items(&mut self.stdout, items)?;
+
             if is_prompt {
                 show_prompt(&mut self.stdout)?;
             }
@@ -100,27 +96,6 @@ impl AltScreen {
 }
 
 //  //  //  //  //  //  //  //
-fn show_status(stdout: &mut Stdout, status: &GameStatus) -> Result<()>{
-    use colored::Colorize;
-
-    queue!(
-        stdout,
-        cursor::MoveTo(0,35),
-    )?;
-    match status {
-        GameStatus::Ok => {
-            print!("STATUS: {}", "Ok".green());
-        },
-        GameStatus::GameOver(s) => {
-            print!("STATUS: {}", s.red());
-        },
-        GameStatus::Debug(m) => {
-            print!("STATUS: {}", m.yellow());
-        },
-    };
-    Ok(())
-}
-
 fn show_prompt(stdout: &mut Stdout) -> Result<()>{
     queue!(
         stdout,
@@ -139,6 +114,11 @@ fn redraw_background(stdout: &mut Stdout) -> Result<()>{
         Print( "\n0;0\n\n1;0\n\n2;0\n\n3;0\n\n4;0\n\n5;0\n\n6;0\n\n7;0\n\n8;0\n\n9;0\n" ),
         Print( "\nA;0\n\nB;0\n\nC;0\n\nD;0\n\nE;0\n\nF;0\n" ),
     )?;
+    for xx in 0..16 {
+        for yy in 0..16 {
+            print_on_pos(stdout, xx, yy, &get_empty_item_text() )?;
+        }
+    }
     Ok(())
 }
 
@@ -154,27 +134,11 @@ fn print_on_pos( stdout: &mut Stdout, x: u16, y: u16, s: &str ) -> Result<()> {
 }
 
 //  //  //  //  //  //  //  //
-mod get_item_text {
+fn get_empty_item_text() -> String {
     use colored::Colorize;
 
-    pub(super) fn target() -> String {
-        String::from(" X ")
-            .on_red().black()
-            .to_string()
-    }
-
-    pub(super) fn player() -> String {
-        format!(
-            "{}{}{}",
-            "[", "*".green(), "]"
-        )
-    }
-
-    pub(super) fn empty() -> String {
-        String::from("   ")
-            .truecolor(128,128,128).on_truecolor(32,32,32)
-            .to_string()
-    }
-
+    String::from("   ")
+        .truecolor(128,128,128).on_truecolor(32,32,32)
+        .to_string()
 }
 
