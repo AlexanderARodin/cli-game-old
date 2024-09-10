@@ -9,6 +9,7 @@ pub fn expand(src: &str) -> Result<String>{
     for ch in src.chars() {
         match ch {
             '\n' => break,
+            '\r' => break,
             'q' => {
                 return Ok( "q".to_owned() );
             },
@@ -19,7 +20,6 @@ pub fn expand(src: &str) -> Result<String>{
                 }else{
                     mult = Some(num);
                 }
-                //println!("<#{:?}>", mult);
             },
             'h' | 'j' | 'k' | 'l' => {
                 let final_num = match mult {

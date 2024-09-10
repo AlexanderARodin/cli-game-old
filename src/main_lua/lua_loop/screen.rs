@@ -20,6 +20,7 @@ impl AltScreen {
         new_stdout.flush()?;
         if !cfg!(test) {
             crossterm::execute!(new_stdout, EnterAlternateScreen)?;
+            crossterm::execute!( new_stdout, Clear(ClearType::All) )?;
         }else{
             println!("--> EnterAlternateScreen");
         }
@@ -110,9 +111,9 @@ fn redraw_background(stdout: &mut Stdout) -> Result<()>{
     queue!(
         stdout,
         cursor::MoveTo(2,0),
-        Print( "  0;0 0;1 0;2 0;3 0;4 0;5 0;6 0;7 0;8 0;9 0;A 0;B 0;C 0;D 0;E 0;F\n" ),
-        Print( "\n0;0\n\n1;0\n\n2;0\n\n3;0\n\n4;0\n\n5;0\n\n6;0\n\n7;0\n\n8;0\n\n9;0\n" ),
-        Print( "\nA;0\n\nB;0\n\nC;0\n\nD;0\n\nE;0\n\nF;0\n" ),
+        Print( "  0:0 0:1 0:2 0:3 0:4 0:5 0:6 0:7 0:8 0:9 0:A 0:B 0:C 0:D 0:E 0:F\n" ),
+        Print( "\n0:0\n\n1:0\n\n2:0\n\n3:0\n\n4:0\n\n5:0\n\n6:0\n\n7:0\n\n8:0\n\n9:0\n" ),
+        Print( "\nA:0\n\nB:0\n\nC:0\n\nD:0\n\nE:0\n\nF:0\n" ),
     )?;
     for xx in 0..16 {
         for yy in 0..16 {
