@@ -1,5 +1,5 @@
 use anyhow::Result;
-use colored::Colorize;
+use crossterm::style::Stylize;
 
 
 //  //  //  //  //  //  //  //
@@ -11,7 +11,9 @@ pub struct GameState {
 }
 pub enum GameStatus {
     Ok,
+    Exit,
     GameOver(String),
+    #[allow(dead_code)]
     Debug(String),
 }
 
@@ -44,11 +46,13 @@ impl GameState {
     }
 
     pub fn set_exiting(&mut self) {
-        self.status = GameStatus::Debug("..the END!".to_string());
+        //self.status = GameStatus::Debug("..the END!".to_string());
+        self.status = GameStatus::Exit;
     }
-    pub fn is_gameover(&self) -> bool {
+    pub fn is_ended(&self) -> bool {
         match self.status {
             GameStatus::GameOver(_) => true,
+            GameStatus::Exit => true,
             _ => false,
         }
     }
@@ -119,11 +123,14 @@ fn get_status_string(status: &GameStatus) -> String {
         GameStatus::Ok => {
             return format!("\n{}", "STATUS: Ok".green());
         },
+        GameStatus::Exit => {
+            return format!("\n{}", "Exit\n".blue());
+        },
         GameStatus::GameOver(s) => {
-            return format!("\n{}{}", "STATUS: GAME OVER\n".red(), s.red());
+            return format!("\n{}{}", "GAME OVER\n".red(), String::from(s).red());
         },
         GameStatus::Debug(m) => {
-            return format!("\nSTATUS: {}", m.yellow());
+            return format!("\nSTATUS: {}", String::from(m).yellow());
         },
     };
 }

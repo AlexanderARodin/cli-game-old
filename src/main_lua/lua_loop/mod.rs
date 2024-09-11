@@ -24,23 +24,19 @@ pub fn enter_loop(_lua: &mlua::Lua, updater: &mlua::Function) -> Result<()> {
 
         let src_line = user_input::read_line()?;
         let res_line = command_string::expand(&src_line)?;
-        // check for exit command
-        if res_line == "q" {
-            game_state.set_exiting();
-            break 'game_loop;
-        }
 
         // apply user input
         alt_screen.clean()?;
         for cmd in res_line.chars() {
             match cmd {
+                'q' => game_state.set_exiting(),
                 'j' => game_state.move_down(),
                 'k' => game_state.move_up(),
                 'h' => game_state.move_left(),
                 'l' => game_state.move_right(),
                 _ => todo!("un-un-unSupported"),
             }
-            if game_state.is_gameover() {
+            if game_state.is_ended() {
                 break 'game_loop;
             }
             alt_screen.show_state( &game_state.get_visual_array(), false)?;

@@ -11,14 +11,15 @@ mod lua_loop;
 pub fn main_lua(main_lua_code: &str) -> Result<()> {
     let lua = internal_utils::init_lua(main_lua_code,
         |txt_list: Vec<String>| {
-            use colored::Colorize;
+            use crossterm::style::Stylize;
             let mut the_first = true;
             for item in txt_list.iter() {
+                let item_txt = String::from(item);
                 if the_first {
                     the_first = false;
-                    print!( "{} {}", "LUA:".bold().green(), item.bright_magenta() );
+                    print!( "{} {}", "LUA:".bold().green(), item_txt.magenta() );
                 }else{
-                    print!( "\t{}", item.bright_magenta() );
+                    print!( "\t{}", item_txt.magenta() );
                 }
             }
             println!();

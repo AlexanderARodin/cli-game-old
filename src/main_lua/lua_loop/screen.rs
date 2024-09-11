@@ -1,11 +1,11 @@
-use std::io::{stdout, Stdout,Write};
+use std::io::{stdout,Stdout,Write};
 
 use anyhow::Result;
 
 
 use crossterm::{queue, execute, cursor};
 use crossterm::terminal::*;
-use crossterm::style::Print;
+use crossterm::style::{*, Print};
 
 
 //  //  //  //  //  //  //  //
@@ -111,9 +111,8 @@ fn redraw_background(stdout: &mut Stdout) -> Result<()>{
     queue!(
         stdout,
         cursor::MoveTo(2,0),
-        Print( "  0:0 0:1 0:2 0:3 0:4 0:5 0:6 0:7 0:8 0:9 0:A 0:B 0:C 0:D 0:E 0:F\n" ),
-        Print( "\n0:0\n\n1:0\n\n2:0\n\n3:0\n\n4:0\n\n5:0\n\n6:0\n\n7:0\n\n8:0\n\n9:0\n" ),
-        Print( "\nA:0\n\nB:0\n\nC:0\n\nD:0\n\nE:0\n\nF:0\n" ),
+        Print( X_AXIS ),
+        Print( Y_AXIS ),
     )?;
     for xx in 0..16 {
         for yy in 0..16 {
@@ -136,10 +135,15 @@ fn print_on_pos( stdout: &mut Stdout, x: u16, y: u16, s: &str ) -> Result<()> {
 
 //  //  //  //  //  //  //  //
 fn get_empty_item_text() -> String {
-    use colored::Colorize;
+    let styled = "   "
+        .with(Color::Rgb{r:128,g:128,b:128})
+        .on(Color::Rgb{r:32,g:32,b:32});
 
-    String::from("   ")
-        .truecolor(128,128,128).on_truecolor(32,32,32)
-        .to_string()
+    styled.to_string()
 }
 
+
+//  //  //  //  //  //  //  //
+static X_AXIS: &str =  "  0:0 0:1 0:2 0:3 0:4 0:5 0:6 0:7 0:8 0:9 0:A 0:B 0:C 0:D 0:E 0:F\n";
+static Y_AXIS: &str = "\n0:0\n\n1:0\n\n2:0\n\n3:0\n\n4:0\n\n5:0\n\n6:0\n\n7:0\n\n8:0\n\n9:0\n\
+                       \nA:0\n\nB:0\n\nC:0\n\nD:0\n\nE:0\n\nF:0\n";
