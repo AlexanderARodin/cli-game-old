@@ -111,7 +111,7 @@ mod tests {
     #[test]
     fn ok_loading() -> Result<()> {
         let code = "function update() return {target={x=2,y=3}} end";
-        let _ = main_lua(code)?;
+        main_lua(code)?;
         Ok(())
     }
 

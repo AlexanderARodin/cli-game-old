@@ -48,15 +48,15 @@ mod tests {
 
     #[test]
     fn simplest() -> Result<()> {
-        assert!( expand("\n\n\n\nsdfasfasdf")? == "" );
-        assert!( expand("\nsdfasfasdf")? == "" );
+        assert!( (expand("\n\n\n\nsdfasfasdf")?).is_empty() );
+        assert!( (expand("\nsdfasfasdf")?).is_empty() );
         Ok(())
     }
 
     #[test]
     fn simple_moving() -> Result<()> {
         let src = "hjkl1234567890";
-        let res = expand(&src)?;
+        let res = expand(src)?;
 
         assert!( res == "hjkl" );
 
@@ -66,7 +66,7 @@ mod tests {
     #[test]
     fn simple_moving_2() -> Result<()> {
         let src = "hjkl0h0j0k0l";
-        let res = expand(&src)?;
+        let res = expand(src)?;
 
         assert!( res == "hjkl" );
 
@@ -76,7 +76,7 @@ mod tests {
     #[test]
     fn ext_moving() -> Result<()> {
         let src = "hjkl1h1j1k1l2h2j2k2l";
-        let res = expand(&src)?;
+        let res = expand(src)?;
 
         assert!( res == "hjklhjklhhjjkkll" );
 
@@ -86,7 +86,7 @@ mod tests {
     #[test]
     fn ext_moving_2() -> Result<()> {
         let src = "12h13j11k15l";
-        let res = expand(&src)?;
+        let res = expand(src)?;
 
         assert!( res == "hhhhhhhhhhhhjjjjjjjjjjjjjkkkkkkkkkkklllllllllllllll" );
 
