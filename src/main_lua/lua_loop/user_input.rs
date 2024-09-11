@@ -1,7 +1,6 @@
-use std::io::{stdin,BufRead};
+use std::io::{stdin, BufRead};
 
 use anyhow::Result;
-
 
 //  //  //  //  //  //  //  //
 pub fn read_line() -> Result<String> {
@@ -9,9 +8,8 @@ pub fn read_line() -> Result<String> {
 
     let _n = stdin()
         .lock()
-        .read_line( &mut line )
+        .read_line(&mut line)
         .expect("read_line error");
 
     Ok(line)
 }
-

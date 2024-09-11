@@ -1,8 +1,7 @@
-use anyhow::Result;
 use anyhow::anyhow;
+use anyhow::Result;
 
-
-pub fn expand(src: &str) -> Result<String>{
+pub fn expand(src: &str) -> Result<String> {
     let mut res = String::new();
     let mut mult: Option<u32> = None;
 
@@ -11,33 +10,31 @@ pub fn expand(src: &str) -> Result<String>{
             '\n' => break,
             '\r' => break,
             'q' => {
-                return Ok( "q".to_owned() );
-            },
+                return Ok("q".to_owned());
+            }
             '0'..='9' => {
-                let num:u32 = (ch as u32) - 48;
+                let num: u32 = (ch as u32) - 48;
                 if let Some(m) = mult {
-                    mult = Some( num + m*10 );
-                }else{
+                    mult = Some(num + m * 10);
+                } else {
                     mult = Some(num);
                 }
-            },
+            }
             'h' | 'j' | 'k' | 'l' => {
-                let final_num = mult.unwrap_or(1);/*match mult {
-                    None => 1,
-                    Some(n) => n,
-                };*/
+                let final_num = mult.unwrap_or(1); /*match mult {
+                                                       None => 1,
+                                                       Some(n) => n,
+                                                   };*/
                 for _ in 0..final_num {
-                    res.push( ch );
+                    res.push(ch);
                 }
                 mult = None;
-            },
-            _ => return Err( anyhow!("unsupported character") ),
+            }
+            _ => return Err(anyhow!("unsupported character")),
         };
     }
     Ok(res)
 }
-
-
 
 //  //  //  //  //  //  //  //  //  //
 //          TEST                    //
@@ -48,8 +45,8 @@ mod tests {
 
     #[test]
     fn simplest() -> Result<()> {
-        assert!( (expand("\n\n\n\nsdfasfasdf")?).is_empty() );
-        assert!( (expand("\nsdfasfasdf")?).is_empty() );
+        assert!((expand("\n\n\n\nsdfasfasdf")?).is_empty());
+        assert!((expand("\nsdfasfasdf")?).is_empty());
         Ok(())
     }
 
@@ -58,7 +55,7 @@ mod tests {
         let src = "hjkl1234567890";
         let res = expand(src)?;
 
-        assert!( res == "hjkl" );
+        assert!(res == "hjkl");
 
         Ok(())
     }
@@ -68,7 +65,7 @@ mod tests {
         let src = "hjkl0h0j0k0l";
         let res = expand(src)?;
 
-        assert!( res == "hjkl" );
+        assert!(res == "hjkl");
 
         Ok(())
     }
@@ -78,7 +75,7 @@ mod tests {
         let src = "hjkl1h1j1k1l2h2j2k2l";
         let res = expand(src)?;
 
-        assert!( res == "hjklhjklhhjjkkll" );
+        assert!(res == "hjklhjklhhjjkkll");
 
         Ok(())
     }
@@ -88,39 +85,35 @@ mod tests {
         let src = "12h13j11k15l";
         let res = expand(src)?;
 
-        assert!( res == "hhhhhhhhhhhhjjjjjjjjjjjjjkkkkkkkkkkklllllllllllllll" );
+        assert!(res == "hhhhhhhhhhhhjjjjjjjjjjjjjkkkkkkkkkkklllllllllllllll");
 
         Ok(())
     }
 
     #[test]
     fn quiting() -> Result<()> {
-
-        assert!( expand("q")? == "q" );
-        assert!( expand("q\n")? == "q" );
-        assert!( expand("qhjkl")? == "q" );
-        assert!( expand("hjklq")? == "q" );
-        assert!( expand("hjqkl")? == "q" );
+        assert!(expand("q")? == "q");
+        assert!(expand("q\n")? == "q");
+        assert!(expand("qhjkl")? == "q");
+        assert!(expand("hjklq")? == "q");
+        assert!(expand("hjqkl")? == "q");
 
         Ok(())
     }
 
     #[test]
     fn break_on_enter() -> Result<()> {
-
-        assert!( expand("1h2j\n3k55l")? == "hjj" );
+        assert!(expand("1h2j\n3k55l")? == "hjj");
 
         Ok(())
     }
 
     #[test]
     fn should_error() -> Result<()> {
-
-        assert!( expand("y1h2j\n3k55l").is_err() );
-        assert!( expand("1h2j\t\n3k55l").is_err() );
-        assert!( expand(" ").is_err() );
+        assert!(expand("y1h2j\n3k55l").is_err());
+        assert!(expand("1h2j\t\n3k55l").is_err());
+        assert!(expand(" ").is_err());
 
         Ok(())
     }
-
 }
