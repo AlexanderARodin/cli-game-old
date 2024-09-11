@@ -13,7 +13,7 @@ pub fn expand(src: &str) -> Result<String>{
             'q' => {
                 return Ok( "q".to_owned() );
             },
-            '0'..'9' => {
+            '0'..='9' => {
                 let num:u32 = (ch as u32) - 48;
                 if let Some(m) = mult {
                     mult = Some( num + m*10 );
@@ -22,10 +22,10 @@ pub fn expand(src: &str) -> Result<String>{
                 }
             },
             'h' | 'j' | 'k' | 'l' => {
-                let final_num = match mult {
+                let final_num = mult.unwrap_or(1);/*match mult {
                     None => 1,
                     Some(n) => n,
-                };
+                };*/
                 for _ in 0..final_num {
                     res.push( ch );
                 }
@@ -55,7 +55,7 @@ mod tests {
 
     #[test]
     fn simple_moving() -> Result<()> {
-        let src = "hjkl";
+        let src = "hjkl1234567890";
         let res = expand(&src)?;
 
         assert!( res == "hjkl" );

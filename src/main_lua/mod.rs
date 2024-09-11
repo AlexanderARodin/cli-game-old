@@ -27,9 +27,8 @@ pub fn main_lua(main_lua_code: &str) -> Result<()> {
     )?;
 
     let call_lua_update: Function = lua.globals().get("update")?;
-    let res = lua_loop::enter_loop(&lua, &call_lua_update);
 
-    res
+    lua_loop::enter_loop(&lua, &call_lua_update)
 }
 
 

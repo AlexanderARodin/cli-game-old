@@ -29,11 +29,11 @@ pub fn enter_loop(_lua: &mlua::Lua, updater: &mlua::Function) -> Result<()> {
         alt_screen.clean()?;
         for cmd in res_line.chars() {
             match cmd {
-                'q' => game_state.set_exiting(),
-                'j' => game_state.move_down(),
-                'k' => game_state.move_up(),
-                'h' => game_state.move_left(),
-                'l' => game_state.move_right(),
+                'q' => game_state.invoke_command( &game::GameCommand::Exit ),
+                'j' => game_state.invoke_command( &game::GameCommand::Down ),
+                'k' => game_state.invoke_command( &game::GameCommand::Up ),
+                'h' => game_state.invoke_command( &game::GameCommand::Left ),
+                'l' => game_state.invoke_command( &game::GameCommand::Right ),
                 _ => todo!("un-un-unSupported"),
             }
             if game_state.is_ended() {

@@ -46,7 +46,7 @@ impl Drop for AltScreen {
 
 //  //  //  //  //  //  //  //
 fn redraw_items(stdout: &mut Stdout, items: &[(u16,u16,String)] ) -> Result<()>{
-    for (x,y,s) in items.into_iter() {
+    for (x,y,s) in items.iter() {
         print_on_pos(stdout, *x,*y,s)?;
     }
     Ok(())

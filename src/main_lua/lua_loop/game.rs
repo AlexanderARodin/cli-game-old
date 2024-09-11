@@ -17,6 +17,15 @@ pub enum GameStatus {
     Debug(String),
 }
 
+pub enum GameCommand {
+    Exit,
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+//  //  //  //  //  //  //  //
 impl GameState {
     pub fn new() -> Result<Self> {
         let new_one = GameState{
@@ -53,44 +62,50 @@ impl GameState {
         Ok(())
     }
 
-    pub fn set_exiting(&mut self) {
-        self.status = GameStatus::Exit;
+    pub fn invoke_command(&mut self, cmd: &GameCommand) {
+        if let GameStatus::Ok = self.status {
+            match cmd {
+                GameCommand::Exit => {
+                    self.status = GameStatus::Exit;
+                },
+                GameCommand::Down => {
+                    self.move_down();
+                },
+                GameCommand::Up => {
+                    self.move_up();
+                },
+                GameCommand::Left=> {
+                    self.move_left();
+                },
+                GameCommand::Right => {
+                    self.move_right();
+                },
+            }
+        }
     }
 
-    pub fn move_up(&mut self) {
-        if let GameStatus::GameOver(_) = self.status {
-            return;
-        }
-        if self.player.1 <=0 {
+    fn move_up(&mut self) {
+        if self.player.1 ==0 {
             self.status = GameStatus::GameOver("touched the top edge!".to_string());
             return;
         }
         self.player.1 -= 1;
     }
-    pub fn move_down(&mut self) {
-        if let GameStatus::GameOver(_) = self.status {
-            return;
-        }
+    fn move_down(&mut self) {
         if self.player.1 >= 15 {
             self.status = GameStatus::GameOver("touched the bottom edge!".to_string());
             return;
         }
         self.player.1 += 1;
     }
-    pub fn move_left(&mut self) {
-        if let GameStatus::GameOver(_) = self.status {
-            return;
-        }
-        if self.player.0 <=0 {
+    fn move_left(&mut self) {
+        if self.player.0 ==0 {
             self.status = GameStatus::GameOver("touched the left edge!".to_string());
             return;
         }
         self.player.0 -= 1;
     }
-    pub fn move_right(&mut self) {
-        if let GameStatus::GameOver(_) = self.status {
-            return;
-        }
+    fn move_right(&mut self) {
         if self.player.0 >= 15 {
             self.status = GameStatus::GameOver("touched the right edge!".to_string());
             return;
@@ -103,15 +118,17 @@ impl GameState {
 
         res.push( (0,16, generate_status_string(&self.status)) );
 
-
-        // insert target
+        // insert target and player
         let (target_x,target_y) = self.target;
-        res.push( (target_x, target_y, get_target_string()) );
-        // insert player
         let (player_x,player_y) = self.player;
-        res.push( (player_x, player_y, get_player_string()) );
+        if target_x == player_x && target_y == player_y {
+            res.push( (target_x, target_y, get_homed_string()) );
+        }else{
+            res.push( (target_x, target_y, get_target_string()) );
+            res.push( (player_x, player_y, get_player_string()) );
+        }
 
-        return res;
+        res
     }
 
 }
@@ -120,18 +137,24 @@ impl GameState {
 fn generate_status_string(status: &GameStatus) -> String {
     match status {
         GameStatus::Ok => {
-            return format!("\n{}", "STATUS: Ok".green());
+            format!("\n{}", "STATUS: Ok".green())
         },
         GameStatus::Exit => {
-            return format!("\n{}", "Exit\n".blue());
+            format!("\n{}", "Exit\n".blue())
         },
         GameStatus::GameOver(s) => {
-            return format!("\n{}{}", "GAME OVER\n".red(), String::from(s).red());
+            format!("\n{}{}", "GAME OVER\n".red(), String::from(s).red())
         },
         GameStatus::Debug(m) => {
-            return format!("\nSTATUS: {}", String::from(m).yellow());
+            format!("\nSTATUS: {}", String::from(m).yellow())
         },
-    };
+    }
+}
+
+fn get_homed_string() -> String {
+    String::from("[+]")
+        .on_green().white()
+        .to_string()
 }
 
 fn get_target_string() -> String {
