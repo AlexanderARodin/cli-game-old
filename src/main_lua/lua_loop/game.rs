@@ -28,6 +28,14 @@ impl GameState {
         Ok( new_one )
     }
 
+    pub fn is_ended(&self) -> bool {
+        match self.status {
+            GameStatus::GameOver(_) => true,
+            GameStatus::Exit => true,
+            _ => false,
+        }
+    }
+
     pub fn update_by_lua(&mut self, updater: &mlua::Function) -> Result<()> {
         let update_result: mlua::Table = updater.call::<_, mlua::Table>( mlua::Value::Integer( self.time_step ) )?;
         {
@@ -46,17 +54,8 @@ impl GameState {
     }
 
     pub fn set_exiting(&mut self) {
-        //self.status = GameStatus::Debug("..the END!".to_string());
         self.status = GameStatus::Exit;
     }
-    pub fn is_ended(&self) -> bool {
-        match self.status {
-            GameStatus::GameOver(_) => true,
-            GameStatus::Exit => true,
-            _ => false,
-        }
-    }
-
 
     pub fn move_up(&mut self) {
         if let GameStatus::GameOver(_) = self.status {
@@ -102,7 +101,7 @@ impl GameState {
     pub fn get_visual_array(&self) -> Vec<(u16,u16,String)> {
         let mut res = Vec::new();
 
-        res.push( (0,16, get_status_string(&self.status)) );
+        res.push( (0,16, generate_status_string(&self.status)) );
 
 
         // insert target
@@ -118,7 +117,7 @@ impl GameState {
 }
 
 //  //  //  //  //  //  //  //
-fn get_status_string(status: &GameStatus) -> String {
+fn generate_status_string(status: &GameStatus) -> String {
     match status {
         GameStatus::Ok => {
             return format!("\n{}", "STATUS: Ok".green());
