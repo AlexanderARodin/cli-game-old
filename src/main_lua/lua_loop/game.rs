@@ -38,11 +38,9 @@ impl GameState {
     }
 
     pub fn is_ended(&self) -> bool {
-        match self.status {
-            GameStatus::GameOver(_) => true,
-            GameStatus::Exit => true,
-            _ => false,
-        }
+        matches!( self.status,
+            GameStatus::GameOver(_) | GameStatus::Exit
+        )
     }
 
     pub fn update_by_lua(&mut self, updater: &mlua::Function) -> Result<()> {
