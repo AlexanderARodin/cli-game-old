@@ -8,7 +8,8 @@ fn main() -> anyhow::Result<()> {
     {
         let args = CliArgs::parse();
 
-        println!("opening: {}", args.level);
+        println!("level file: {}", args.level);
+        println!("opening..");
         let lua_game_code =
             std::fs::read_to_string(args.level).expect("impossible to open lua_level file");
 
